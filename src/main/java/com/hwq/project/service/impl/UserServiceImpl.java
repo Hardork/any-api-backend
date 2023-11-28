@@ -164,7 +164,20 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
 
     @Override
     public User resetUserSecret(User loginUser) {
-        return null;
+        if (loginUser == null) {
+            throw new BusinessException(ErrorCode.NOT_LOGIN_ERROR);
+        }
+        String userAccount = loginUser.getUserAccount();
+        // 更新
+        String accessKey = DigestUtil.md5Hex(SALT + userAccount + RandomUtil.randomNumbers(5));
+        String secretKey = DigestUtil.md5Hex(SALT + userAccount + RandomUtil.randomNumbers(8));
+        loginUser.setAccessKey(accessKey);
+        loginUser.setSecretKey(secretKey);
+        boolean update = this.updateById(loginUser);
+        if(!update) {
+            throw new BusinessException(ErrorCode.SYSTEM_ERROR);
+        }
+        return loginUser;
     }
 
 }
